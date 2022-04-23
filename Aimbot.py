@@ -8,12 +8,13 @@ import time
 
 
 # SETUP. arduino port may be different. Run movement testing to find name
-model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='C:/Users/Trevor/Documents/yolov5/yolov5/runs/train/exp2/weights/best.pt')
 arduino = serial.Serial('COM5', 9600, timeout=0)
 
-
+ScreenSizeX = 3840
+ScreenSizeY = 2160
 with mss.mss() as sct: 
-    monitor = {'top': 0, 'left': 0, 'width': 3840, 'height': 2160}
+    monitor = {'top': 0, 'left': 0, 'width': ScreenSizeX, 'height': ScreenSizeY}
 
 while True:
     img = np.array(sct.grab(monitor))
@@ -23,44 +24,32 @@ while True:
 
     # if any results do the following
     if len(rl) > 0:
-        # if the confidence is above 35%
+        # if the confidence is above 30%
         if rl[0][4] >= .3:
+            # Class prediction
             if rl[0][5]  == 1:
 
                 print(rl[0])
 
                 # X Info
-                FOVx = 1000
-                ScreenSizeX = 3840
-                correlatedX = round((FOVx / ScreenSizeX), 2)
                 xmax = int(rl[0][2])
                 width = int(rl[0][2] - rl[0][0])
                 screenCenterX = ScreenSizeX / 2
                 centerX = int((xmax - (width/2)) - screenCenterX)
                 
                 # Y INFO
-                FOVy = 725
-                ScreenSizeY = 2160
-                correlatedY = round((FOVy / ScreenSizeY), 2)
                 ymax = int(rl[0][1])
                 height = int(rl[0][1] - rl[0][3])
                 screenCenterY = ScreenSizeY / 2
                 centerY = int((ymax - (height/4)) - screenCenterY)
 
-                # Change .2 as needed
-                moveX = int(centerX * .2)
-                moveY = int(centerY * .2)
+                # Change decimal as needed
+                moveX = int(centerX * .1)
+                moveY = int(centerY * .1)
 
                 if centerY < screenCenterY:
                     moveY *= -1
 
-                print('Centerx = ' + str(centerX))
-                print(str(correlatedX))
-                print('MoveX: ' + str(moveX))
-
-                print('Centery = ' + str(centerY))
-                print('yMax = ' + str(ymax))
-                print('MoveY: ' + str(moveY))
                 arduino.write((str(moveX) + ":" + str(moveY) + 'x').encode())
                 time.sleep(.08)
     cv2.waitKey(1)
