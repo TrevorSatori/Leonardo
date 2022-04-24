@@ -101,7 +101,6 @@ void loop()
 
   if (Serial.available() > 0)
   {
-    Serial.print("SUCCESS");
     // Read Data
     String data = Serial.readStringUntil('x');
 
